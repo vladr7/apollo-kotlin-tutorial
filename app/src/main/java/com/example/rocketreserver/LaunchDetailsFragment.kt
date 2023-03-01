@@ -9,7 +9,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import coil.load
-import com.apollographql.apollo3.exception.ApolloException
 import com.example.rocketreserver.databinding.LaunchDetailsFragmentBinding
 
 class LaunchDetailsFragment : Fragment() {
@@ -36,23 +35,26 @@ class LaunchDetailsFragment : Fragment() {
             binding.progressBar.visibility = View.VISIBLE
             binding.error.visibility = View.GONE
 
-            val response = try {
+            val launch =
                 apolloClient(requireContext()).query(LaunchDetailsQuery(id = args.launchId))
                     .execute()
-            } catch (e: ApolloException) {
-                binding.progressBar.visibility = View.GONE
-                binding.error.text = "Oh no... A protocol error happened"
-                binding.error.visibility = View.VISIBLE
-                return@launchWhenResumed
-            }
-
-            val launch = response.data?.launch
-            if (launch == null || response.hasErrors()) {
-                binding.progressBar.visibility = View.GONE
-                binding.error.text = response.errors?.get(0)?.message
-                binding.error.visibility = View.VISIBLE
-                return@launchWhenResumed
-            }
+                    .fold(
+                        onException = {
+                            binding.progressBar.visibility = View.GONE
+                            binding.error.text = "Oh no... A protocol error happened"
+                            binding.error.visibility = View.VISIBLE
+                            return@launchWhenResumed
+                        },
+                        onErrors = { errors ->
+                            binding.progressBar.visibility = View.GONE
+                            binding.error.text = errors[0].message
+                            binding.error.visibility = View.VISIBLE
+                            return@launchWhenResumed
+                        },
+                        onSuccess = { data ->
+                            data.launch!!
+                        }
+                    )
 
             binding.progressBar.visibility = View.GONE
 
@@ -96,19 +98,19 @@ class LaunchDetailsFragment : Fragment() {
                     BookTripMutation(id = args.launchId)
                 }
 
-                val response = try {
-                    apolloClient(requireContext()).mutation(mutation).execute()
-                } catch (e: ApolloException) {
-                    configureButton(isBooked)
-                    return@launchWhenResumed
-                }
-
-                if (response.hasErrors()) {
-                    configureButton(isBooked)
-                    return@launchWhenResumed
-                }
-
-                configureButton(!isBooked)
+                apolloClient(requireContext()).mutation(mutation).execute().fold(
+                    onException = {
+                        configureButton(isBooked)
+                        return@launchWhenResumed
+                    },
+                    onErrors = {
+                        configureButton(isBooked)
+                        return@launchWhenResumed
+                    },
+                    onSuccess = { data ->
+                        configureButton(!isBooked)
+                    }
+                )
             }
         }
     }

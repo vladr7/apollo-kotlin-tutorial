@@ -4,9 +4,6 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -18,10 +15,6 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             apolloClient(this@MainActivity).subscription(TripsBookedSubscription()).toFlow()
-                .retryWhen { _, attempt ->
-                    delay(attempt * 1000)
-                    true
-                }
                 .collect {
                     val text = when (val trips = it.data?.tripsBooked) {
                         null -> getString(R.string.subscriptionError)

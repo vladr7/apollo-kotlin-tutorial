@@ -10,7 +10,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.apollographql.apollo3.api.Optional
-import com.apollographql.apollo3.exception.ApolloException
 import com.example.rocketreserver.databinding.LaunchListFragmentBinding
 import kotlinx.coroutines.channels.Channel
 
@@ -45,23 +44,27 @@ class LaunchListFragment : Fragment() {
         lifecycleScope.launchWhenResumed {
             var cursor: String? = null
             for (item in channel) {
-                val response = try {
+                val data =
                     apolloClient(requireContext()).query(LaunchListQuery(Optional.Present(cursor)))
                         .execute()
-                } catch (e: ApolloException) {
-                    Log.d("LaunchList", "Failure", e)
-                    return@launchWhenResumed
-                }
+                        .fold(
+                            onException = { e ->
+                                Log.d("LaunchList", "Network error", e)
+                                return@launchWhenResumed
+                            },
+                            onErrors = { errors ->
+                                Log.d("LaunchList", "Backend error: ${errors.map { it.message }}")
+                                return@launchWhenResumed
+                            },
+                            onSuccess = { it }
+                        )
 
-                val newLaunches = response.data?.launches?.launches?.filterNotNull()
+                val newLaunches = data.launches.launches.filterNotNull()
+                launches.addAll(newLaunches)
+                adapter.notifyDataSetChanged()
 
-                if (newLaunches != null) {
-                    launches.addAll(newLaunches)
-                    adapter.notifyDataSetChanged()
-                }
-
-                cursor = response.data?.launches?.cursor
-                if (response.data?.launches?.hasMore != true) {
+                cursor = data.launches.cursor
+                if (!data.launches.hasMore) {
                     break
                 }
             }

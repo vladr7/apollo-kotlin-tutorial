@@ -3,6 +3,7 @@ include(":app")
 
 pluginManagement {
     repositories {
+        mavenLocal()
         gradlePluginPortal()
         mavenCentral()
     }
