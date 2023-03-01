@@ -40,7 +40,7 @@ class LoginFragment : Fragment() {
                     apolloClient(requireContext()).mutation(LoginMutation(email)).execute()
 
                 val token = response.data?.login?.token
-                if (token == null || response.hasErrors()) {
+                if (token == null) {
                     binding.submitProgressBar.visibility = View.GONE
                     binding.submit.visibility = View.VISIBLE
                     return@launchWhenResumed

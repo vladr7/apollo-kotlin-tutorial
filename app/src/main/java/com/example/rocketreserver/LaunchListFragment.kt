@@ -47,12 +47,18 @@ class LaunchListFragment : Fragment() {
                 val response =
                     apolloClient(requireContext()).query(LaunchListQuery(Optional.Present(cursor)))
                         .execute()
-                val data = if (response.isSuccessful()) {
-                    response.data!!
-                } else {
-                    Log.d("LaunchList", "Network or backend error")
-                    // Not logging the exception or error(s) though
-                    return@launchWhenResumed
+                val data = when {
+                    response.exception != null -> {
+                        Log.d("LaunchList", "Network error", response.exception)
+                        return@launchWhenResumed
+                    }
+
+                    response.hasErrors() -> {
+                        Log.d("LaunchList", "Backend error: ${response.errors}")
+                        return@launchWhenResumed
+                    }
+
+                    else -> response.data!!
                 }
 
                 val newLaunches = data.launches.launches.filterNotNull()

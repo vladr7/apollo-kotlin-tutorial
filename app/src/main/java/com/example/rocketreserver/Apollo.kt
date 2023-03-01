@@ -3,7 +3,6 @@ package com.example.rocketreserver
 import android.content.Context
 import android.util.Log
 import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.api.ApolloResponse
 import com.apollographql.apollo3.network.okHttpClient
 import kotlinx.coroutines.delay
 import okhttp3.Interceptor
@@ -43,8 +42,4 @@ private class AuthorizationInterceptor(val context: Context) : Interceptor {
 
         return chain.proceed(request)
     }
-}
-
-fun ApolloResponse<*>.isSuccessful(): Boolean {
-    return this.exception == null && !this.hasErrors() && this.data != null
 }
