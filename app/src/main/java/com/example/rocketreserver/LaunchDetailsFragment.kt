@@ -35,16 +35,18 @@ class LaunchDetailsFragment : Fragment() {
             binding.progressBar.visibility = View.VISIBLE
             binding.error.visibility = View.GONE
 
-            val launch =
+            val result =
                 apolloClient(requireContext()).query(LaunchDetailsQuery(id = args.launchId))
-                    .toResult()
-                    .getOrElse {
-                        binding.progressBar.visibility = View.GONE
-                        binding.error.text = "Oh no... A network or protocol error happened"
-                        binding.error.visibility = View.VISIBLE
-                        return@launchWhenResumed
-                    }
-                    .launch!!
+                    .execute()
+
+            val launch = if (result.isSuccessful()) {
+                result.data!!.launch!!
+            } else {
+                binding.progressBar.visibility = View.GONE
+                binding.error.text = "Oh no... A network or protocol error happened"
+                binding.error.visibility = View.VISIBLE
+                return@launchWhenResumed
+            }
 
             binding.progressBar.visibility = View.GONE
 
@@ -88,14 +90,11 @@ class LaunchDetailsFragment : Fragment() {
                     BookTripMutation(id = args.launchId)
                 }
 
-                apolloClient(requireContext()).mutation(mutation).toResult().fold(
-                    onFailure = {
-                        configureButton(isBooked)
-                    },
-                    onSuccess = {
-                        configureButton(!isBooked)
-                    }
-                )
+                if (apolloClient(requireContext()).mutation(mutation).execute().isSuccessful()) {
+                    configureButton(!isBooked)
+                } else {
+                    configureButton(isBooked)
+                }
             }
         }
     }

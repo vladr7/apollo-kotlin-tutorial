@@ -2,11 +2,8 @@ package com.example.rocketreserver
 
 import android.content.Context
 import android.util.Log
-import com.apollographql.apollo3.ApolloCall
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.ApolloResponse
-import com.apollographql.apollo3.api.Operation
-import com.apollographql.apollo3.exception.ApolloException
 import com.apollographql.apollo3.network.okHttpClient
 import kotlinx.coroutines.delay
 import okhttp3.Interceptor
@@ -48,14 +45,6 @@ private class AuthorizationInterceptor(val context: Context) : Interceptor {
     }
 }
 
-
-fun <D : Operation.Data> ApolloResponse<D>.toResult(): Result<D> {
-    return when {
-        exception != null -> Result.failure(exception!!)
-        hasErrors() -> Result.failure(ApolloException("The response has errors: $errors")) // maybe a specific exception with the errors as a field?
-        data == null -> Result.failure(ApolloException("The server did not return any data"))
-        else -> Result.success(data!!)
-    }
+fun ApolloResponse<*>.isSuccessful(): Boolean {
+    return this.exception == null && !this.hasErrors() && this.data != null
 }
-
-suspend fun <D : Operation.Data> ApolloCall<D>.toResult() = execute().toResult()

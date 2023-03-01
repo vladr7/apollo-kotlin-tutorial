@@ -44,13 +44,16 @@ class LaunchListFragment : Fragment() {
         lifecycleScope.launchWhenResumed {
             var cursor: String? = null
             for (item in channel) {
-                val data =
+                val response =
                     apolloClient(requireContext()).query(LaunchListQuery(Optional.Present(cursor)))
-                        .toResult()
-                        .getOrElse { e ->
-                            Log.d("LaunchList", "Network or backend error", e)
-                            return@launchWhenResumed
-                        }
+                        .execute()
+                val data = if (response.isSuccessful()) {
+                    response.data!!
+                } else {
+                    Log.d("LaunchList", "Network or backend error")
+                    // Not logging the exception or error(s) though
+                    return@launchWhenResumed
+                }
 
                 val newLaunches = data.launches.launches.filterNotNull()
                 launches.addAll(newLaunches)
