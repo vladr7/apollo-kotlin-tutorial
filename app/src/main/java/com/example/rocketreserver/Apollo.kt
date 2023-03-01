@@ -2,9 +2,9 @@ package com.example.rocketreserver
 
 import android.content.Context
 import android.util.Log
+import com.apollographql.apollo3.ApolloCall
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.ApolloResponse
-import com.apollographql.apollo3.api.Error
 import com.apollographql.apollo3.api.Operation
 import com.apollographql.apollo3.exception.ApolloException
 import com.apollographql.apollo3.network.okHttpClient
@@ -12,9 +12,6 @@ import kotlinx.coroutines.delay
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
 
 private var instance: ApolloClient? = null
 
@@ -52,21 +49,13 @@ private class AuthorizationInterceptor(val context: Context) : Interceptor {
 }
 
 
-@OptIn(ExperimentalContracts::class)
-inline fun <D : Operation.Data, R> ApolloResponse<D>.fold(
-    onException: (exception: ApolloException) -> R,
-    onErrors: ApolloResponse<D>.(errors: List<Error>) -> R,
-    onSuccess: ApolloResponse<D>.(data: D) -> R,
-): R {
-    contract {
-        callsInPlace(onException, InvocationKind.AT_MOST_ONCE)
-        callsInPlace(onErrors, InvocationKind.AT_MOST_ONCE)
-        callsInPlace(onSuccess, InvocationKind.AT_MOST_ONCE)
-    }
-
+fun <D : Operation.Data> ApolloResponse<D>.toResult(): Result<D> {
     return when {
-        exception != null -> onException(exception!!)
-        hasErrors() -> onErrors(errors!!)
-        else -> onSuccess(data!!)
+        exception != null -> Result.failure(exception!!)
+        hasErrors() -> Result.failure(ApolloException("The response has errors: $errors")) // maybe a specific exception with the errors as a field?
+        data == null -> Result.failure(ApolloException("The server did not return any data"))
+        else -> Result.success(data!!)
     }
 }
+
+suspend fun <D : Operation.Data> ApolloCall<D>.toResult() = execute().toResult()

@@ -46,18 +46,11 @@ class LaunchListFragment : Fragment() {
             for (item in channel) {
                 val data =
                     apolloClient(requireContext()).query(LaunchListQuery(Optional.Present(cursor)))
-                        .execute()
-                        .fold(
-                            onException = { e ->
-                                Log.d("LaunchList", "Network error", e)
-                                return@launchWhenResumed
-                            },
-                            onErrors = { errors ->
-                                Log.d("LaunchList", "Backend error: ${errors.map { it.message }}")
-                                return@launchWhenResumed
-                            },
-                            onSuccess = { it }
-                        )
+                        .toResult()
+                        .getOrElse { e ->
+                            Log.d("LaunchList", "Network or backend error", e)
+                            return@launchWhenResumed
+                        }
 
                 val newLaunches = data.launches.launches.filterNotNull()
                 launches.addAll(newLaunches)

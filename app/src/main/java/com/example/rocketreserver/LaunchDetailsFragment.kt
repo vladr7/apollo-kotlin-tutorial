@@ -37,24 +37,14 @@ class LaunchDetailsFragment : Fragment() {
 
             val launch =
                 apolloClient(requireContext()).query(LaunchDetailsQuery(id = args.launchId))
-                    .execute()
-                    .fold(
-                        onException = {
-                            binding.progressBar.visibility = View.GONE
-                            binding.error.text = "Oh no... A protocol error happened"
-                            binding.error.visibility = View.VISIBLE
-                            return@launchWhenResumed
-                        },
-                        onErrors = { errors ->
-                            binding.progressBar.visibility = View.GONE
-                            binding.error.text = errors[0].message
-                            binding.error.visibility = View.VISIBLE
-                            return@launchWhenResumed
-                        },
-                        onSuccess = { data ->
-                            data.launch!!
-                        }
-                    )
+                    .toResult()
+                    .getOrElse {
+                        binding.progressBar.visibility = View.GONE
+                        binding.error.text = "Oh no... A network or protocol error happened"
+                        binding.error.visibility = View.VISIBLE
+                        return@launchWhenResumed
+                    }
+                    .launch!!
 
             binding.progressBar.visibility = View.GONE
 
@@ -98,16 +88,11 @@ class LaunchDetailsFragment : Fragment() {
                     BookTripMutation(id = args.launchId)
                 }
 
-                apolloClient(requireContext()).mutation(mutation).execute().fold(
-                    onException = {
+                apolloClient(requireContext()).mutation(mutation).toResult().fold(
+                    onFailure = {
                         configureButton(isBooked)
-                        return@launchWhenResumed
                     },
-                    onErrors = {
-                        configureButton(isBooked)
-                        return@launchWhenResumed
-                    },
-                    onSuccess = { data ->
+                    onSuccess = {
                         configureButton(!isBooked)
                     }
                 )
