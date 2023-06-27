@@ -1,5 +1,5 @@
-query LaunchList {
-  launches {
+query LaunchList($cursor: String) {
+  launches(after: $cursor) {
     cursor
     hasMore
     launches {
@@ -10,5 +10,6 @@ query LaunchList {
         missionPatch(size: SMALL)
       }
     }
+    hasMore
   }
 }

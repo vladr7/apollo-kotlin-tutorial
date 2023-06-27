@@ -26,17 +26,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.apollographql.apollo3.api.ApolloResponse
+import com.apollographql.apollo3.api.Optional
 
 @Composable
 fun LaunchList(onLaunchClick: (launchId: String) -> Unit) {
+    var cursor: String? by remember { mutableStateOf(null) }
+    var response: ApolloResponse<LaunchListQuery.Data>? by remember { mutableStateOf(null) }
     var launchList by remember { mutableStateOf(emptyList<LaunchListQuery.Launch>()) }
 
     LaunchedEffect(
-        key1 = Unit,
+        key1 = cursor,
     ) {
-        val response = apolloClient.query(LaunchListQuery()).execute()
-        launchList = response.data?.launches?.launches?.filterNotNull() ?: emptyList()
-        Log.d("LaunchList", "Success ${response.data}")
+        response = apolloClient.query(
+            LaunchListQuery(
+                cursor = Optional.present(cursor)
+            )
+        ).execute()
+        launchList = response?.data?.launches?.launches?.filterNotNull() ?: emptyList()
+        Log.d(
+            "LaunchList",
+            "Success ${response?.data}"
+        )
     }
 
     LazyColumn {
@@ -45,6 +56,12 @@ fun LaunchList(onLaunchClick: (launchId: String) -> Unit) {
                 launch = launch,
                 onClick = onLaunchClick
             )
+        }
+        item {
+            if (response?.data?.launches?.hasMore == true) {
+                LoadingItem()
+                cursor = response?.data?.launches?.cursor
+            }
         }
     }
 }
@@ -64,7 +81,10 @@ private fun LaunchItem(launch: LaunchListQuery.Launch, onClick: (launchId: Strin
         leadingContent = {
             // Mission patch
             AsyncImage(
-                modifier = Modifier.size(68.dp, 68.dp),
+                modifier = Modifier.size(
+                    68.dp,
+                    68.dp
+                ),
                 model = launch.mission?.missionPatch,
                 placeholder = painterResource(R.drawable.ic_placeholder),
                 error = painterResource(R.drawable.ic_placeholder),
