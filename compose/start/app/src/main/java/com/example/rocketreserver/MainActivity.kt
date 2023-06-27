@@ -38,7 +38,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun MainNavHost() {
     val navController = rememberNavController()
-    NavHost(navController, startDestination = NavigationDestinations.LAUNCH_LIST) {
+    NavHost(
+        navController,
+        startDestination = NavigationDestinations.LAUNCH_LIST
+    ) {
         composable(route = NavigationDestinations.LAUNCH_LIST) {
             LaunchList(
                 onLaunchClick = { launchId ->
@@ -48,7 +51,8 @@ private fun MainNavHost() {
         }
 
         composable(route = "${NavigationDestinations.LAUNCH_DETAILS}/{${NavigationArguments.LAUNCH_ID}}") { navBackStackEntry ->
-            LaunchDetails(launchId = navBackStackEntry.arguments!!.getString(NavigationArguments.LAUNCH_ID)!!)
+            LaunchDetails(launchId = navBackStackEntry.arguments!!.getString(NavigationArguments.LAUNCH_ID)!!,
+                navigateToLogin = { navController.navigate(NavigationDestinations.LOGIN) })
         }
 
         composable(route = NavigationDestinations.LOGIN) {
