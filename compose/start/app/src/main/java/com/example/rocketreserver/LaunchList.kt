@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 
 @Composable
 fun LaunchList(onLaunchClick: (launchId: String) -> Unit) {
@@ -54,20 +55,19 @@ private fun LaunchItem(launch: LaunchListQuery.Launch, onClick: (launchId: Strin
         modifier = Modifier.clickable { onClick(launch.id) },
         headlineText = {
             // Mission name
-            Text(text = "Launch ${launch.id}")
+            Text(text = launch.mission?.name ?: "")
         },
         supportingText = {
             // Site
-            Text(text = "Site...")
+            Text(text = launch.site ?: "")
         },
         leadingContent = {
             // Mission patch
-            Image(
-                modifier = Modifier.size(
-                    68.dp,
-                    68.dp
-                ),
-                painter = painterResource(R.drawable.ic_placeholder),
+            AsyncImage(
+                modifier = Modifier.size(68.dp, 68.dp),
+                model = launch.mission?.missionPatch,
+                placeholder = painterResource(R.drawable.ic_placeholder),
+                error = painterResource(R.drawable.ic_placeholder),
                 contentDescription = "Mission patch"
             )
         }
