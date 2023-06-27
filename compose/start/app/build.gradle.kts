@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.apollographql.apollo3") version "4.0.0-alpha.1"
 }
 
 android {
@@ -61,6 +62,7 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.5.3")
     implementation("androidx.security:security-crypto:1.1.0-alpha05")
     implementation("io.coil-kt:coil-compose:2.2.2")
+    implementation("com.apollographql.apollo3:apollo-runtime:4.0.0-alpha.1")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -69,4 +71,10 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+apollo {
+    service("service") {
+        packageName.set("com.example.rocketreserver")
+    }
 }
