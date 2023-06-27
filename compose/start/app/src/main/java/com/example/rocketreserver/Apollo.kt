@@ -7,6 +7,7 @@ class AuthorizationInterceptor() : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request().newBuilder()
             .apply {
+                println("vlad: token: ${TokenRepository.getToken()}")
                 TokenRepository.getToken()?.let { token ->
                     addHeader("Authorization", token)
                 }
