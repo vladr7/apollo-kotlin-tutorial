@@ -56,7 +56,9 @@ private fun MainNavHost() {
         }
 
         composable(route = NavigationDestinations.LOGIN) {
-            Login()
+            Login(
+                navigateBack = { navController.popBackStack() },
+            )
         }
     }
 }
