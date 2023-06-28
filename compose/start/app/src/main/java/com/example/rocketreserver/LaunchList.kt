@@ -4,6 +4,7 @@ package com.example.rocketreserver
 
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,11 +25,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.apollographql.apollo3.api.ApolloResponse
 import com.apollographql.apollo3.api.Optional
+import kotlin.random.Random
 
 @Composable
 fun LaunchList(onLaunchClick: (launchId: String) -> Unit) {
@@ -68,8 +72,20 @@ fun LaunchList(onLaunchClick: (launchId: String) -> Unit) {
 
 @Composable
 private fun LaunchItem(launch: LaunchListQuery.Launch, onClick: (launchId: String) -> Unit) {
+    var color: Color? by remember { mutableStateOf(null) }
+    LaunchedEffect(
+        key1 =  launch.id,
+    ) {
+        val isBooked = apolloClient.query(LaunchBookedQuery(launchId = launch.id)).execute().data?.launch?.isBooked ?: false
+        color = if (isBooked) Color(red = 0.8f, green = 0.0f, blue = 0.0f, alpha = 0.4f) else
+            Color(red = 0.0f, green = 0.0f, blue = 0.8f, alpha = 0.4f)
+    }
     ListItem(
-        modifier = Modifier.clickable { onClick(launch.id) },
+        colors = ListItemDefaults.colors(
+            containerColor = color ?: Color.Transparent,
+        ),
+        modifier = Modifier
+            .clickable { onClick(launch.id) },
         headlineText = {
             // Mission name
             Text(text = launch.mission?.name ?: "")

@@ -1,0 +1,6 @@
+query LaunchBooked($launchId: ID!) {
+    launch(id: $launchId) {
+        isBooked
+    }
+}
+
