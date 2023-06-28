@@ -1,0 +1,10 @@
+query GetMissions($pageSize: Int) {
+  launches(pageSize: $pageSize) {
+    launches {
+      id
+      mission {
+        name
+      }
+    }
+  }
+}

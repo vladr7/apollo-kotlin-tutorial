@@ -70,7 +70,7 @@ private fun MainNavHost() {
     val navController = rememberNavController()
     NavHost(
         navController,
-        startDestination = NavigationDestinations.LAUNCH_LIST
+        startDestination = NavigationDestinations.ALL_MISSIONS_SCREEN
     ) {
         composable(route = NavigationDestinations.LAUNCH_LIST) {
             LaunchList(
@@ -89,6 +89,9 @@ private fun MainNavHost() {
             Login(
                 navigateBack = { navController.popBackStack() },
             )
+        }
+        composable(route = NavigationDestinations.ALL_MISSIONS_SCREEN) {
+            AllMissionsScreen()
         }
     }
 }
